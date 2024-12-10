@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "Podcast Episode 1",
+    "description": "Einführung in die Welt des Podcastings",
+    "duration": "15:30",
+    "fileFormat": "mp3",
+    "createdAt": "2024-11-24T10:15:00Z"
+  },
+  {
+    "id": 2,
+    "title": "Interview mit Musiker",
+    "description": "Ein Gespräch über kreative Prozesse und Inspiration",
+    "duration": "45:00",
+    "fileFormat": "wav",
+    "createdAt": "2024-11-20T14:30:00Z"
+  },
+  {
+    "id": 3,
+    "title": "Naturklänge",
+    "description": "Aufnahme von Vogelgezwitscher und Flussrauschen",
+    "duration": "10:15",
+    "fileFormat": "flac",
+    "createdAt": "2024-11-18T07:00:00Z"
+  },
+  {
+    "id": 4,
+    "title": "Sprachmemo für Projektideen",
+    "description": "Notizen für zukünftige Projekte",
+    "duration": "05:00",
+    "fileFormat": "aac",
+    "createdAt": "2024-11-22T16:45:00Z"
+  },
+  {
+    "id": 5,
+    "title": "Live-Auftritt Band",
+    "description": "Aufnahme von Vogelgezwitscher und Flussrauschen",
+    "duration": "01:30:00",
+    "fileFormat": "mp3",
+    "createdAt": "2024-11-15T20:00:00Z"
+  }
+]
