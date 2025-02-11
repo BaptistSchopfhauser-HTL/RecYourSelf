@@ -31,7 +31,7 @@ const createdAtdate = (date) => {
       <q-carousel-slide :name="3" img-src="/img/carouselPic3.jpg" />
     </q-carousel>
     <div class="">
-      <q-card class="text-h3 q-pa-md fixed-center">
+      <q-card class="text-h3 q-pa-md fixed-center" style="background: rgba(255, 255, 255, 0.7)">
         Welcome to
         <span class="text-bold" style="font-family: 'Times New Roman', Times, serif"
           >RecYourSelf</span
