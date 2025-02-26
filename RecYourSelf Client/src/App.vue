@@ -1,6 +1,5 @@
 <script setup>
-import { ref } from 'vue';
-const footerVisible = ref(true);
+
 </script>
 
 <template>
@@ -25,13 +24,6 @@ const footerVisible = ref(true);
     <!-- <q-drawer v-model="leftDrawerOpen" side="left" bordered>
 
     </q-drawer> -->
-    <q-footer reveal elevated v-if="footerVisible" @click="footerVisible = false">
-      <div>
-        <q-toolbar-title class="bg-secondary text-center">
-          <q-badge>&copy; 2024-2025 Baptist Schopfhauser</q-badge>
-        </q-toolbar-title>
-      </div>
-    </q-footer>
 
     <q-page-container>
       <q-page class="q-pa-md">

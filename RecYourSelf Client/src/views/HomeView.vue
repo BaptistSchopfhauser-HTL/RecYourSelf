@@ -38,15 +38,6 @@ const sortOrder = ref('asc');
 const itemsPerRow = ref(3);
 
 const Loding = ref(true);
-
-const deleteRecording = async (id) => {
-  try {
-    await axios.delete(`http://localhost:3000/recordings/${id}`);
-    recordings.value = recordings.value.filter((rec) => rec.id !== id);
-  } catch (error) {
-    console.error('Error deleting recording:', error);
-  }
-};
 </script>
 
 <template>
@@ -62,9 +53,9 @@ const deleteRecording = async (id) => {
       </div>
     </q-card>
 
-    <div bordered class="col-12 q-pa-md overlay-card shadow-10">
+    <div bordered class=" col-12 q-pa-md overlay-card shadow-10">
       <q-item-label class="text-h4 q-mb-md text-weight-light">Recordings:</q-item-label>
-
+ 
       <div class="row justify-center wrap">
         <div class="q-pa-md col-12 gt-sm">
           <q-select
@@ -102,15 +93,6 @@ const deleteRecording = async (id) => {
                 class="q-mt-md q-mb-md"
                 style="background-color: #f1f4f5"
               ></audio>
-              <q-btn
-                color="red"
-                icon="delete"
-                
-                @click.stop="deleteRecording(recording.id)"
-                flat
-                round
-                class="q-mt-md"
-              />
             </q-card-section>
           </q-card>
         </q-item>
