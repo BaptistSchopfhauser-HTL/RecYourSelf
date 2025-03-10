@@ -11,6 +11,12 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 
 const dbFilePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'db.json');
+const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir);
+}
+
+app.use('/public', express.static(publicDir));
 
 // Funktion zum Lesen der Daten aus der db.json-Datei
 function readData() {
@@ -30,16 +36,6 @@ function writeData(data) {
 let recordings = readData().recordings;
 let id = recordings.length ? recordings[recordings.length - 1].id + 1 : 1;
 
-// Funktion zum Erstellen eines Backups
-function createBackup() {
-  const backupFilePath = path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    `backup-${Date.now()}.json`,
-  );
-  fs.writeFileSync(backupFilePath, JSON.stringify(recordings, null, 2));
-  console.log(`Backup created at ${backupFilePath}`);
-}
-
 app.post('/recordings', (req, res, next) => {
   try {
     const { title, description, audio } = req.body;
@@ -48,18 +44,29 @@ app.post('/recordings', (req, res, next) => {
       throw new Error('Missing required fields');
     }
 
+    // Validate and log the audio field
+    if (typeof audio !== 'string' || !audio.startsWith('data:audio/wav;base64,')) {
+      throw new Error('Invalid audio format');
+    }
+
+    // Save audio file as .wav in public directory
+    const buffer = Buffer.from(audio.split('base64,')[1], 'base64');
+    const audioFileName = `${title}_${id}.wav`;
+    const audioFilePath = path.join(publicDir, audioFileName);
+    fs.writeFileSync(audioFilePath, buffer);
+
     const newRecording = {
       id: id++,
       title,
       description,
-      audio,
+      audio: `/Public/${audioFileName}`, // Store the file path instead of base64 data
       createdAt: new Date().toLocaleString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
       }).replace(',', ''),
     };
 
@@ -79,11 +86,23 @@ app.get('/recordings', (req, res, next) => {
   }
 });
 
-// Endpunkt zum Erstellen eines Backups
-app.post('/backup', (req, res, next) => {
+app.delete('/recordings/:id', (req, res, next) => {
   try {
-    createBackup();
-    res.status(200).send('Backup created successfully');
+    const recordingId = parseInt(req.params.id, 10);
+    const recordingIndex = recordings.findIndex(r => r.id === recordingId);
+
+    if (recordingIndex === -1) {
+      return res.status(404).send({ error: 'Recording not found' });
+    }
+
+    const [recording] = recordings.splice(recordingIndex, 1);
+    const audioFilePath = path.join(publicDir, path.basename(recording.audio));
+    if (fs.existsSync(audioFilePath)) {
+      fs.unlinkSync(audioFilePath);
+    }
+
+    writeData({ recordings });
+    res.status(200).send({ message: 'Recording deleted successfully' });
   } catch (error) {
     next(error);
   }
@@ -97,4 +116,30 @@ app.use((err, req, res, next) => {
 
 app.listen(port, () => {
   console.log(`JSON server running at http://localhost:${port}`);
+});
+
+app.put('/recordings/:id', (req, res, next) => {
+  try {
+    const recordingId = parseInt(req.params.id, 10);
+    const { title, description } = req.body;
+
+    // Lese aktuelle Daten
+    const data = readData();
+    const idx = data.recordings.findIndex((r) => r.id === recordingId);
+    if (idx === -1) {
+      return res.status(404).send({ error: 'Recording not found' });
+    }
+
+    // Update Werte
+    data.recordings[idx].title = title;
+    data.recordings[idx].description = description;
+
+    // Speichere Daten und aktualisiere den Array
+    writeData(data);
+    recordings = data.recordings;
+
+    res.status(200).json(data.recordings[idx]);
+  } catch (error) {
+    next(error);
+  }
 });

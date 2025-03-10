@@ -1,7 +1,10 @@
 <script setup>
 import { ref, onBeforeUnmount } from 'vue';
 import axios from 'axios';
-import { useRouter} from 'vue-router'
+import { useRouter} from 'vue-router';
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
 
 
 
@@ -29,7 +32,10 @@ const startRecording = async () => {
     reader.readAsDataURL(audioBlob);
     reader.onloadend = () => {
       audioUrl.value = reader.result;
-      alert('Audio created successfully!');
+      $q.notify({
+        type: 'positive',
+        message: 'Audio created successfully!',
+      });
     };
   };
   mediaRecorder.start();
@@ -57,23 +63,34 @@ const stopRecording = () => {
 
 const handleSubmit = async () => {
   if (!audioUrl.value) {
-    alert('Please record audio before submitting.');
+    $q.notify({
+      type: 'negative',
+      message: 'Please record audio before submitting.',
+    });
     return;
   }
 
-  const audioBase64 = audioUrl.value.split(',')[1]; // Extract base64 part
+  // Ensure the audio data is correctly formatted
+  const audioBase64 = audioUrl.value;
 
   try {
     const response = await axios.post('http://localhost:3000/recordings', {
       title: title.value,
       description: description.value,
-      audio: audioBase64,
+      audio: audioBase64, // Send the full base64 string with prefix
     });
     console.log('Recording saved:', response.data);
   } catch (error) {
     console.error('Error saving recording:', error);
+    $q.notify({
+      type: 'negative',
+      message: 'Error saving recording.',
+    });
   }
-  alert('Recording saved successfully!');
+  $q.notify({
+    type: 'positive',
+    message: 'Recording saved successfully!',
+  });
   router.push('/');
 };
 
@@ -105,7 +122,7 @@ window.addEventListener('beforeunload', warnUnsavedChanges);
 
         <div class="audio-recorder q-mt-md">
           <div class="controls">
-            <q-btn @click="startRecording" :disable="isRecording" icon="mic" color="primary" />
+            <q-btn @click="startRecording" :disable="isRecording" icon="mic" :color="isRecording ? 'red' : 'primary'" />
             <q-btn
               @click="pauseRecording"
               :disable="!isRecording || isPaused"
