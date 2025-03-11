@@ -154,14 +154,12 @@ onMounted(() => {
               <div class="row justify-center">
                 <q-btn
                   @click="deleteRecording(recording.id)"
-                  label="Delete"
                   icon="delete"
                   color="negative"
                   class="q-mt-md"
                 />
                 <q-btn
                   @click="openEdit(recording)"
-                  label="Edit"
                   icon="edit"
                   color="blue"
                   class="q-mt-md q-ml-sm"
