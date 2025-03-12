@@ -8,7 +8,7 @@ const app = express();
 const port = 3000;
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); 
+app.use(express.json({ limit: '50mb' }));
 
 const dbFilePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'db.json');
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
@@ -36,6 +36,7 @@ function writeData(data) {
 let recordings = readData().recordings;
 let id = recordings.length ? recordings[recordings.length - 1].id + 1 : 1;
 
+// Erstelle eine neue Aufnahme
 app.post('/recordings', (req, res, next) => {
   try {
     const { title, description, audio } = req.body;
@@ -44,12 +45,12 @@ app.post('/recordings', (req, res, next) => {
       throw new Error('Missing required fields');
     }
 
-    // Validate and log the audio field
+    // Validiere und protokolliere das Audio-Feld
     if (typeof audio !== 'string' || !audio.startsWith('data:audio/wav;base64,')) {
       throw new Error('Invalid audio format');
     }
 
-    // Save audio file as .wav in public directory
+    // Speichere die Audiodatei als .wav im public-Verzeichnis
     const buffer = Buffer.from(audio.split('base64,')[1], 'base64');
     const audioFileName = `${title}_${id}.wav`;
     const audioFilePath = path.join(publicDir, audioFileName);
@@ -59,15 +60,17 @@ app.post('/recordings', (req, res, next) => {
       id: id++,
       title,
       description,
-      audio: `/Public/${audioFileName}`, // Store the file path instead of base64 data
-      createdAt: new Date().toLocaleString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).replace(',', ''),
+      audio: `/Public/${audioFileName}`, // Speichere den Dateipfad anstelle von Base64-Daten
+      createdAt: new Date()
+        .toLocaleString('de-DE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+        .replace(',', ''),
     };
 
     recordings.push(newRecording);
@@ -78,6 +81,7 @@ app.post('/recordings', (req, res, next) => {
   }
 });
 
+// Gibt alle Aufnahmen zurück
 app.get('/recordings', (req, res, next) => {
   try {
     res.json(recordings);
@@ -86,10 +90,11 @@ app.get('/recordings', (req, res, next) => {
   }
 });
 
+// Löscht eine Aufnahme anhand der ID
 app.delete('/recordings/:id', (req, res, next) => {
   try {
     const recordingId = parseInt(req.params.id, 10);
-    const recordingIndex = recordings.findIndex(r => r.id === recordingId);
+    const recordingIndex = recordings.findIndex((r) => r.id === recordingId);
 
     if (recordingIndex === -1) {
       return res.status(404).send({ error: 'Recording not found' });
@@ -114,10 +119,12 @@ app.use((err, req, res, next) => {
   res.status(500).send({ error: err.message });
 });
 
+// Starte den Server und lausche auf dem konfigurierten Port
 app.listen(port, () => {
   console.log(`JSON server running at http://localhost:${port}`);
 });
 
+// Aktualisiert eine bestehende Aufnahme anhand der ID
 app.put('/recordings/:id', (req, res, next) => {
   try {
     const recordingId = parseInt(req.params.id, 10);

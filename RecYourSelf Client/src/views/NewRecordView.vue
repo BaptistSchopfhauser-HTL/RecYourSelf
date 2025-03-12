@@ -1,12 +1,10 @@
 <script setup>
 import { ref, onBeforeUnmount } from 'vue';
 import axios from 'axios';
-import { useRouter} from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
-
-
 
 const router = useRouter();
 const title = ref('');
@@ -14,55 +12,61 @@ const description = ref('');
 const isRecording = ref(false);
 const isPaused = ref(false);
 const audioUrl = ref(null);
+
 let mediaRecorder;
 let audioChunks = [];
 
 const startRecording = async () => {
-  isRecording.value = true;
-  isPaused.value = false;
-  audioChunks = [];
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
+  isRecording.value = true; // Aufnahme als gestartet markieren
+  isPaused.value = false; // Aufnahme nicht pausiert
+  audioChunks = []; // Frühere Audio-Chunks löschen
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); // Mikrofonzugriff anfordern
+  mediaRecorder = new MediaRecorder(stream); // MediaRecorder erstellen
   mediaRecorder.ondataavailable = (event) => {
-    audioChunks.push(event.data);
+    audioChunks.push(event.data); // Audio-Daten speichern
   };
   mediaRecorder.onstop = () => {
-    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    // Wenn Aufnahme stoppt, Daten verarbeiten
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' }); // Blob aus Audio-Chunks erstellen
     const reader = new FileReader();
-    reader.readAsDataURL(audioBlob);
+    reader.readAsDataURL(audioBlob); // Blob in Base64 konvertieren
     reader.onloadend = () => {
-      audioUrl.value = reader.result;
+      audioUrl.value = reader.result; // Base64-Audio speichern
       $q.notify({
         type: 'positive',
         message: 'Audio created successfully!',
       });
     };
   };
-  mediaRecorder.start();
+  mediaRecorder.start(); // Aufnahme starten
 };
 
 const pauseRecording = () => {
+  // Aufnahme pausieren, wenn läuft
   if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.pause();
-    isPaused.value = true;
+    mediaRecorder.pause(); // pausieren
+    isPaused.value = true; // Status pausiert
   }
 };
 
 const resumeRecording = () => {
+  // Aufnahme fortsetzen, wenn pausiert
   if (mediaRecorder && mediaRecorder.state === 'paused') {
-    mediaRecorder.resume();
-    isPaused.value = false;
+    mediaRecorder.resume(); // fortsetzen
+    isPaused.value = false; // Pausiert-Status entfernen
   }
 };
 
 const stopRecording = () => {
-  isRecording.value = false;
-  isPaused.value = false;
-  mediaRecorder.stop();
+  // Aufnahme stoppen
+  isRecording.value = false; // Aufnahme-Status zurücksetzen
+  isPaused.value = false; // Pausiert-Status zurücksetzen
+  mediaRecorder.stop(); // MediaRecorder stoppen
 };
 
 const handleSubmit = async () => {
   if (!audioUrl.value) {
+    // Wenn Audio nicht aufgenommen, Fehler Nachricht
     $q.notify({
       type: 'negative',
       message: 'Please record audio before submitting.',
@@ -70,14 +74,14 @@ const handleSubmit = async () => {
     return;
   }
 
-  // Ensure the audio data is correctly formatted
   const audioBase64 = audioUrl.value;
 
   try {
+    // Daten an Server senden
     const response = await axios.post('http://localhost:3000/recordings', {
       title: title.value,
       description: description.value,
-      audio: audioBase64, // Send the full base64 string with prefix
+      audio: audioBase64, // Base64-String senden
     });
     console.log('Recording saved:', response.data);
   } catch (error) {
@@ -95,6 +99,7 @@ const handleSubmit = async () => {
 };
 
 const warnUnsavedChanges = (event) => {
+  // Warnung, wenn ungespeicherte Änderungen vorliegen
   if (isRecording.value || audioUrl.value) {
     event.preventDefault();
     event.returnValue = '';
@@ -122,7 +127,12 @@ window.addEventListener('beforeunload', warnUnsavedChanges);
 
         <div class="audio-recorder q-mt-md">
           <div class="controls">
-            <q-btn @click="startRecording" :disable="isRecording" icon="mic" :color="isRecording ? 'red' : 'primary'" />
+            <q-btn
+              @click="startRecording"
+              :disable="isRecording"
+              icon="mic"
+              :color="isRecording ? 'red' : 'primary'"
+            />
             <q-btn
               @click="pauseRecording"
               :disable="!isRecording || isPaused"

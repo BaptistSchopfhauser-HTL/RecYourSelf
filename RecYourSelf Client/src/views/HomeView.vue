@@ -6,19 +6,24 @@ import { useQuasar } from 'quasar';
 const $q = useQuasar();
 const recordings = ref([]);
 
+// Funktion, um alle Aufnahmen vom Server zu laden
 const fetchdata = async () => {
   try {
+    // Ruft Daten ab
     const response = await axios.get('http://localhost:3000/recordings');
-    recordings.value = response.data;
-    console.log('recordings:', recordings.value);
+    recordings.value = response.data; // Speichert Aufnahmen
+    console.log('recordings:', recordings.value); // Ausgabe zur Kontrolle in der Konsole
   } catch (error) {
     console.error('Error fetching data:', error);
   }
 };
 
+// Funktion zum Löschen einer Aufnahme
 const deleteRecording = async (id) => {
   try {
+    // Löscht die Aufnahme auf Serverseite
     await axios.delete(`http://localhost:3000/recordings/${id}`);
+    // Entfernt die Aufnahme aus der Liste
     recordings.value = recordings.value.filter((recording) => recording.id !== id);
     $q.notify({
       type: 'positive',
@@ -33,30 +38,31 @@ const deleteRecording = async (id) => {
   }
 };
 
-// Für den Edit-Dialog
 const showEditDialog = ref(false);
 const editId = ref(null);
 const editTitle = ref('');
 const editDescription = ref('');
 
+// Funktion, um den Edit-Dialog zu öffnen und die Daten der ausgewählten Aufnahme zu laden
 const openEdit = (recording) => {
-  editId.value = recording.id;
-  editTitle.value = recording.title;
-  editDescription.value = recording.description;
-  showEditDialog.value = true;
+  editId.value = recording.id; // ID der Aufnahme übernehmen
+  editTitle.value = recording.title; // Titel übernehmen
+  editDescription.value = recording.description; // Beschreibung übernehmen
+  showEditDialog.value = true; // Zeigt edit-log
 };
 
+// Bearbeitete Daten speichern
 const saveEdit = async () => {
   try {
+    // Aktualisiert Aufnahme
     const response = await axios.put(`http://localhost:3000/recordings/${editId.value}`, {
       title: editTitle.value,
       description: editDescription.value,
     });
 
-    // Update das Aufnahme-Array
-    const idx = recordings.value.findIndex((r) => r.id === editId.value);
+    const idx = recordings.value.findIndex((r) => r.id === editId.value); // Sucht Eintrag im Array
     if (idx !== -1) {
-      recordings.value[idx] = response.data;
+      recordings.value[idx] = response.data; // Aktualisiert Eintrag mit neuen Daten vom Server
     }
 
     $q.notify({
@@ -70,7 +76,6 @@ const saveEdit = async () => {
       message: 'Error updating recording.',
     });
   }
-
   showEditDialog.value = false;
 };
 
